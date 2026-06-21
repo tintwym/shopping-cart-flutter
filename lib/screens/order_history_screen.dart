@@ -90,7 +90,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       child: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: _orders.length + 1,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           if (index == _orders.length) {
             return const LayoutScrollFooter();

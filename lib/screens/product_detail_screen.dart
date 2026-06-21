@@ -158,7 +158,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         children: [
                           ExpansionPanel(
                             isExpanded: _reviewsExpanded,
-                            headerBuilder: (_, __) => const ListTile(
+                            headerBuilder: (_, _) => const ListTile(
                               title: Text(
                                 'Reviews',
                                 style: TextStyle(fontWeight: FontWeight.w600),
