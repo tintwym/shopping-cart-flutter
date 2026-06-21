@@ -1,6 +1,6 @@
 {
-    "name": "shopping_cart_flutter",
-    "short_name": "shopping_cart_flutter",
+    "name": "Shopping Cart",
+    "short_name": "Shopping Cart",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

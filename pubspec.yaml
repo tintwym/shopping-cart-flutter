@@ -1,5 +1,5 @@
 name: shopping_cart_flutter
-description: Mobile shopping cart client for the Spring Boot API.
+description: Shopping Cart Flutter client for the Spring Boot API.
 publish_to: 'none'
 version: 0.1.0+1
 
