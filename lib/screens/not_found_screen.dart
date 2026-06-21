@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../widgets/app_logo.dart';
+
 class NotFoundScreen extends StatelessWidget {
   const NotFoundScreen({super.key});
 
@@ -13,7 +15,7 @@ class NotFoundScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.search_off, size: 64, color: Color(0xFF9CA3AF)),
+              const AppLogo(height: 80),
               const SizedBox(height: 16),
               const Text(
                 'Page not found',

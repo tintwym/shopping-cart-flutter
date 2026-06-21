@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/app_providers.dart';
+import '../../widgets/app_logo.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -78,11 +78,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    SvgPicture.asset(
-                      'assets/user_logo.svg',
-                      height: 96,
-                      fit: BoxFit.contain,
-                    ),
+                    const AppLogo(height: 96, userVariant: true),
                     const SizedBox(height: 24),
                     const Text(
                       'Create your account',

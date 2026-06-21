@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../core/api/api_client.dart';
 import '../models/user.dart';
 import '../providers/app_providers.dart';
+import 'app_logo.dart';
 import 'cart_badge_icon.dart';
 
 /// Teal sticky header matching React `Header.jsx`.
@@ -75,7 +75,7 @@ class _AppHeaderState extends State<AppHeader> {
               children: [
                 Row(
                   children: [
-                    SvgPicture.asset('assets/logo.svg', height: 48),
+                    const AppLogo(height: 48),
                     const Spacer(),
                     IconButton(
                       onPressed: () => Navigator.pop(context),
@@ -163,10 +163,7 @@ class _AppHeaderState extends State<AppHeader> {
             children: [
               GestureDetector(
                 onTap: () => context.go('/'),
-                child: SvgPicture.asset(
-                  'assets/logo.svg',
-                  height: 72,
-                ),
+                child: const AppLogo(height: 72),
               ),
               const Spacer(),
               if (wide) ...[

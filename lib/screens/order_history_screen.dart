@@ -8,6 +8,7 @@ import '../../config/app_config.dart';
 import '../../core/api/api_client.dart';
 import '../../models/order.dart';
 import '../../providers/app_providers.dart';
+import '../../widgets/app_logo.dart';
 import '../../widgets/app_shell.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
@@ -67,8 +68,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.receipt_long_outlined,
-                      size: 48, color: Color(0xFF0D9488)),
+                  const AppLogo(height: 64),
                   const SizedBox(height: 16),
                   const Text('No orders found!'),
                   const SizedBox(height: 16),
@@ -151,8 +151,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                                     )
                                                   : const ColoredBox(
                                                       color: Color(0xFFF3F4F6),
-                                                      child: Icon(
-                                                          Icons.shopping_bag),
+                                                      child: AppLogoPlaceholder(
+                                                          size: 36),
                                                     ),
                                             ),
                                           ),

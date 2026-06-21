@@ -9,6 +9,7 @@ import '../../core/api/api_client.dart';
 import '../../models/product.dart';
 import '../../models/review.dart';
 import '../../providers/app_providers.dart';
+import '../../widgets/app_logo.dart';
 import '../../widgets/app_shell.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -105,8 +106,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 )
                               : const ColoredBox(
                                   color: Color(0xFFF3F4F6),
-                                  child: Icon(Icons.shopping_bag_outlined,
-                                      size: 64, color: Color(0xFF0D9488)),
+                                  child: AppLogoPlaceholder(size: 72),
                                 ),
                         ),
                       ),

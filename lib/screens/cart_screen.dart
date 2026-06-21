@@ -8,6 +8,7 @@ import '../../config/app_config.dart';
 import '../../core/api/api_client.dart';
 import '../../models/cart.dart';
 import '../../providers/app_providers.dart';
+import '../../widgets/app_logo.dart';
 import '../../widgets/app_shell.dart';
 
 class CartScreen extends StatefulWidget {
@@ -192,7 +193,7 @@ class _CartScreenState extends State<CartScreen> {
                                               )
                                             : const ColoredBox(
                                                 color: Color(0xFFF3F4F6),
-                                                child: Icon(Icons.image),
+                                                child: AppLogoPlaceholder(size: 40),
                                               ),
                                       ),
                                     ),

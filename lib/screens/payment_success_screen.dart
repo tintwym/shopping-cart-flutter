@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/api/api_client.dart';
 import '../../providers/app_providers.dart';
+import '../../widgets/app_logo.dart';
 import '../../widgets/app_shell.dart';
 
 class PaymentSuccessScreen extends StatefulWidget {
@@ -51,6 +52,8 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              const AppLogo(height: 72),
+              const SizedBox(height: 24),
               CircleAvatar(
                 radius: 36,
                 backgroundColor: const Color(0xFFD1FAE5),

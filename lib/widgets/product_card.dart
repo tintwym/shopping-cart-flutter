@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../config/app_config.dart';
 import '../models/product.dart';
+import 'app_logo.dart';
 
 class ProductCard extends StatelessWidget {
   const ProductCard({
@@ -47,12 +48,12 @@ class ProductCard extends StatelessWidget {
                           ),
                           errorWidget: (_, _, _) => const ColoredBox(
                             color: Color(0xFFF3F4F6),
-                            child: Icon(Icons.image_not_supported_outlined),
+                            child: AppLogoPlaceholder(size: 56),
                           ),
                         )
                       : const ColoredBox(
                           color: Color(0xFFF3F4F6),
-                          child: Icon(Icons.shopping_bag_outlined, size: 48),
+                          child: AppLogoPlaceholder(size: 56),
                         ),
                 ),
               ),
