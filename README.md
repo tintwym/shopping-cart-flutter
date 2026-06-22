@@ -20,11 +20,17 @@ flutter run -d chrome \
 
 ## Deploy to Vercel (web)
 
+Deploy files for this client:
+
+| File | Location |
+|------|----------|
+| `vercel.json`, `scripts/vercel-build.sh` | This folder (`shopping-cart-flutter/`) |
+
 See **[DEPLOY.md](../DEPLOY.md)** for the full production checklist (Render + Vercel + Stripe webhook + admin).
 
 1. Push this repo to GitHub.
 2. Import the project in [Vercel](https://vercel.com/new).
-3. **Root directory:** repository root (this folder).
+3. **Root Directory:** `shopping-cart-flutter`
 4. **Environment variables** (required for production builds):
 
    | Variable | Example |
