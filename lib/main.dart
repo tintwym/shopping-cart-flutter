@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'core/api/api_client.dart';
+import 'config/app_config.dart';
 import 'core/theme/app_theme.dart';
 import 'providers/app_providers.dart';
 import 'screens/cart_screen.dart';
@@ -22,6 +23,7 @@ import 'screens/review_screen.dart';
 import 'screens/saved_screen.dart';
 import 'screens/two_factor_screen.dart';
 import 'widgets/app_shell.dart';
+import 'widgets/config_error_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -164,6 +166,16 @@ class _ShoppingCartAppState extends State<ShoppingCartApp> {
 
   @override
   Widget build(BuildContext context) {
+    if (!AppConfig.isApiConfigured && kIsWeb) {
+      final host = Uri.base.host;
+      final isLocal = host == 'localhost' || host == '127.0.0.1';
+      if (!isLocal) {
+        return const MaterialApp(
+          home: ConfigErrorScreen(),
+        );
+      }
+    }
+
     if (_authProvider.loading) {
       return MaterialApp(
         theme: AppTheme.light,
@@ -181,7 +193,7 @@ class _ShoppingCartAppState extends State<ShoppingCartApp> {
         ChangeNotifierProvider.value(value: _savedProvider),
       ],
       child: MaterialApp.router(
-        title: 'Shopping Cart',
+        title: 'Pixel Tech',
         theme: AppTheme.light,
         routerConfig: _router,
       ),

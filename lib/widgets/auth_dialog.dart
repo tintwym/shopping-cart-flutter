@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/api/api_errors.dart';
 import '../core/theme/app_theme.dart';
 import '../providers/app_providers.dart';
 import 'app_logo.dart';
@@ -111,12 +112,12 @@ class _AuthDialogState extends State<AuthDialog> {
       }
       await context.read<CartProvider>().refreshCount();
       if (mounted) Navigator.of(context).pop(true);
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
         setState(() {
           _error = _mode == AuthDialogMode.login
               ? 'Username or password is incorrect.'
-              : 'Registration failed. Please try again.';
+              : apiErrorMessage(e);
         });
       }
     } finally {
