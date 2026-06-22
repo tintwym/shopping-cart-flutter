@@ -45,3 +45,7 @@ Stripe checkout success redirect uses `APP_FRONTEND_BASE_URL/payment/success?ses
 
 - Flutter 3.x, Provider, GoRouter, Dio
 - Targets: Web (Vercel), Android, iOS
+
+## License
+
+MIT — see [LICENSE](../LICENSE) in the repository root.

@@ -156,7 +156,7 @@ class _SavedScreenState extends State<SavedScreen> {
           crossAxisCount: 2,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
-          childAspectRatio: 0.62,
+          childAspectRatio: 0.58,
         ),
         itemCount: _products.length + 1,
         itemBuilder: (context, index) {

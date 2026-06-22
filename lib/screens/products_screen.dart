@@ -235,9 +235,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: columns,
-                    crossAxisSpacing: columns > 1 ? 24 : 0,
-                    mainAxisSpacing: 48,
-                    mainAxisExtent: 700,
+                    crossAxisSpacing: columns > 1 ? 20 : 0,
+                    mainAxisSpacing: 24,
+                    childAspectRatio: columns >= 4
+                        ? 0.58
+                        : columns >= 2
+                            ? 0.62
+                            : 0.72,
                   ),
                   itemCount: _pageProducts.length,
                   itemBuilder: (context, index) {
