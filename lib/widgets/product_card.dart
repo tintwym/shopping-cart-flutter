@@ -1,8 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../config/app_config.dart';
 import '../models/product.dart';
+import '../providers/app_providers.dart';
+import '../utils/product_image_url.dart';
 import 'app_logo.dart';
 
 class ProductCard extends StatelessWidget {
@@ -11,20 +13,24 @@ class ProductCard extends StatelessWidget {
     required this.product,
     required this.onTap,
     required this.onAddToCart,
+    this.showSaveButton = false,
   });
 
   final Product product;
   final VoidCallback onTap;
   final VoidCallback onAddToCart;
+  final bool showSaveButton;
 
   String? get _imageUrl {
     if (product.images.isEmpty) return null;
-    return '${AppConfig.imageBaseUrl}/${product.images.first.path}';
+    return productImageUrl(product.images.first.path);
   }
 
   @override
   Widget build(BuildContext context) {
     final canAdd = !product.deleted && product.stock > 0;
+    final saved = context.watch<SavedProvider>();
+    final isSaved = saved.isSaved(product.id);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -81,6 +87,31 @@ class ProductCard extends StatelessWidget {
                 ),
               ),
             ),
+            if (showSaveButton)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Material(
+                  color: Colors.white.withValues(alpha: 0.92),
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
+                    onPressed: () => saved.toggle(product.id),
+                    icon: Icon(
+                      isSaved ? Icons.bookmark : Icons.bookmark_border,
+                      color: isSaved
+                          ? const Color(0xFF0D9488)
+                          : const Color(0xFF6B7280),
+                      size: 22,
+                    ),
+                  ),
+                ),
+              ),
             Positioned(
               left: 16,
               right: 16,

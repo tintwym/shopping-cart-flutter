@@ -8,15 +8,19 @@ import 'core/api/api_client.dart';
 import 'core/theme/app_theme.dart';
 import 'providers/app_providers.dart';
 import 'screens/cart_screen.dart';
-import 'screens/login_screen.dart';
+import 'screens/admin_products_screen.dart';
+import 'screens/change_password_screen.dart';
+import 'screens/me_screen.dart';
 import 'screens/not_found_screen.dart';
 import 'screens/order_history_screen.dart';
+import 'screens/payment_methods_screen.dart';
 import 'screens/payment_success_screen.dart';
 import 'screens/product_detail_screen.dart';
 import 'screens/products_screen.dart';
-import 'screens/profile_screen.dart';
-import 'screens/register_screen.dart';
+import 'screens/profile_settings_screen.dart';
 import 'screens/review_screen.dart';
+import 'screens/saved_screen.dart';
+import 'screens/two_factor_screen.dart';
 import 'widgets/app_shell.dart';
 
 void main() {
@@ -35,6 +39,7 @@ class _ShoppingCartAppState extends State<ShoppingCartApp> {
   late final ApiClient _apiClient;
   late final AuthProvider _authProvider;
   late final CartProvider _cartProvider;
+  late final SavedProvider _savedProvider;
   late final GoRouter _router;
   final _appLinks = AppLinks();
   bool _cartCountLoaded = false;
@@ -45,6 +50,7 @@ class _ShoppingCartAppState extends State<ShoppingCartApp> {
     _apiClient = ApiClient();
     _authProvider = AuthProvider(_apiClient);
     _cartProvider = CartProvider(_apiClient);
+    _savedProvider = SavedProvider();
     _router = _buildRouter();
     _authProvider.addListener(_onAuthChanged);
     if (!kIsWeb) {
@@ -75,11 +81,6 @@ class _ShoppingCartAppState extends State<ShoppingCartApp> {
       refreshListenable: _authProvider,
       redirect: (context, state) {
         if (_authProvider.loading) return null;
-        final path = state.matchedLocation;
-        if (_authProvider.authenticated &&
-            (path == '/login' || path == '/register')) {
-          return '/';
-        }
         return null;
       },
       errorBuilder: (_, state) => NotFoundScreen(key: ValueKey(state.uri)),
@@ -93,9 +94,31 @@ class _ShoppingCartAppState extends State<ShoppingCartApp> {
               path: '/orders',
               builder: (_, _) => const OrderHistoryScreen(),
             ),
+            GoRoute(path: '/saved', builder: (_, _) => const SavedScreen()),
+            GoRoute(path: '/me', builder: (_, _) => const MeScreen()),
+            GoRoute(
+              path: '/me/settings',
+              builder: (_, _) => const ProfileSettingsScreen(),
+            ),
+            GoRoute(
+              path: '/me/change-password',
+              builder: (_, _) => const ChangePasswordScreen(),
+            ),
+            GoRoute(
+              path: '/me/two-factor',
+              builder: (_, _) => const TwoFactorScreen(),
+            ),
+            GoRoute(
+              path: '/me/payment-methods',
+              builder: (_, _) => const PaymentMethodsScreen(),
+            ),
+            GoRoute(
+              path: '/me/admin/products',
+              builder: (_, _) => const AdminProductsScreen(),
+            ),
             GoRoute(
               path: '/profile',
-              builder: (_, _) => const ProfileScreen(),
+              redirect: (_, _) => '/me',
             ),
             GoRoute(
               path: '/products/:id',
@@ -118,8 +141,6 @@ class _ShoppingCartAppState extends State<ShoppingCartApp> {
             ),
           ],
         ),
-        GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
-        GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
       ],
     );
   }
@@ -157,6 +178,7 @@ class _ShoppingCartAppState extends State<ShoppingCartApp> {
         Provider<ApiClient>.value(value: _apiClient),
         ChangeNotifierProvider.value(value: _authProvider),
         ChangeNotifierProvider.value(value: _cartProvider),
+        ChangeNotifierProvider.value(value: _savedProvider),
       ],
       child: MaterialApp.router(
         title: 'Shopping Cart',

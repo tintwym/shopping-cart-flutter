@@ -4,12 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../config/app_config.dart';
 import '../../core/api/api_client.dart';
 import '../../models/cart.dart';
 import '../../providers/app_providers.dart';
+import '../../utils/product_image_url.dart';
 import '../../widgets/app_logo.dart';
 import '../../widgets/app_shell.dart';
+import '../../widgets/auth_dialog.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -32,7 +33,7 @@ class _CartScreenState extends State<CartScreen> {
   Future<void> _load() async {
     final auth = context.read<AuthProvider>();
     if (!auth.authenticated) {
-      final loggedIn = await context.push<bool>('/login');
+      final loggedIn = await showAuthDialog(context);
       if (loggedIn != true || !mounted) {
         context.go('/');
         return;
@@ -173,7 +174,8 @@ class _CartScreenState extends State<CartScreen> {
                             }
                             final item = items[index];
                             final imageUrl = item.product.images.isNotEmpty
-                                ? '${AppConfig.imageBaseUrl}/${item.product.images.first.path}'
+                                ? productImageUrl(
+                                    item.product.images.first.path)
                                 : null;
                             return Card(
                               child: Padding(

@@ -20,24 +20,24 @@ flutter run -d chrome \
 
 ## Deploy to Vercel (web)
 
-1. Push this repo to GitHub (`tintwym/shopping-cart-flutter`).
+See **[DEPLOY.md](../DEPLOY.md)** for the full production checklist (Render + Vercel + Stripe webhook + admin).
+
+1. Push this repo to GitHub.
 2. Import the project in [Vercel](https://vercel.com/new).
 3. **Root directory:** repository root (this folder).
 4. **Environment variables** (required for production builds):
 
    | Variable | Example |
    |----------|---------|
-   | `API_BASE_URL` | `https://shopping-cart-api.onrender.com/api` |
-   | `IMAGE_BASE_URL` | `https://shopping-cart-api.onrender.com/images/products` (optional; derived from API URL if omitted) |
+   | `API_BASE_URL` | `https://your-api.onrender.com/api` |
 
-5. Deploy. Vercel runs `scripts/vercel-build.sh` (installs Flutter stable, builds web).
+   Must be your **public Render API URL** ending in `/api`. Do not use `IMAGE_BASE_URL` or localhost.
+
+5. Deploy. Vercel runs `scripts/vercel-build.sh` (validates `API_BASE_URL`, installs Flutter stable, builds web).
 
 ### After deploy — backend (Render)
 
-On your Render API service, set:
-
-- `APP_FRONTEND_BASE_URL` → your Vercel URL (e.g. `https://shopping-cart-flutter.vercel.app`)
-- Add the same origin to CORS in `FilterConfig.java` / `WebConfig.java` if not already allowed
+On your Render API service, set `APP_FRONTEND_BASE_URL` to your Vercel URL. Full variable list is in [DEPLOY.md](../DEPLOY.md).
 
 Stripe checkout success redirect uses `APP_FRONTEND_BASE_URL/payment/success?session_id=...`.
 

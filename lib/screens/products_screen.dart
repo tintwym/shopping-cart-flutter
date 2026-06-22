@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/api/api_errors.dart';
 import '../../core/api/api_client.dart';
 import '../../models/product.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/app_shell.dart';
+import '../../widgets/auth_dialog.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -55,8 +57,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
           _currentPage = 1;
         });
       }
-    } catch (_) {
-      if (mounted) setState(() => _error = 'Could not load products.');
+    } catch (e) {
+      if (mounted) setState(() => _error = apiErrorMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -76,7 +78,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Future<void> _addToCart(Product product) async {
     final auth = context.read<AuthProvider>();
     if (!auth.authenticated) {
-      final loggedIn = await context.push<bool>('/login');
+      final loggedIn = await showAuthDialog(context);
       if (loggedIn != true || !mounted) return;
     }
     try {
@@ -194,7 +196,16 @@ class _ProductsScreenState extends State<ProductsScreen> {
               if (_error != null)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24),
-                  child: Text(_error!, textAlign: TextAlign.center),
+                  child: Column(
+                    children: [
+                      Text(_error!, textAlign: TextAlign.center),
+                      const SizedBox(height: 12),
+                      OutlinedButton(
+                        onPressed: _loadProducts,
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
                 )
               else if (_filtered.isEmpty)
                 SizedBox(
@@ -235,6 +246,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       product: product,
                       onTap: () => context.push('/products/${product.id}'),
                       onAddToCart: () => _addToCart(product),
+                      showSaveButton: true,
                     );
                   },
                 ),

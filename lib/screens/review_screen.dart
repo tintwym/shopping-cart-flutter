@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../core/api/api_client.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/app_shell.dart';
+import '../../widgets/auth_dialog.dart';
 
 class ReviewScreen extends StatefulWidget {
   const ReviewScreen({
@@ -35,7 +36,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
   Future<void> _ensureAuthenticated() async {
     final auth = context.read<AuthProvider>();
     if (!auth.authenticated) {
-      final loggedIn = await context.push<bool>('/login');
+      final loggedIn = await showAuthDialog(context);
       if (!mounted) return;
       if (loggedIn != true) {
         context.go('/');

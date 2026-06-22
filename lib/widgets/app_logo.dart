@@ -7,17 +7,41 @@ class AppLogo extends StatelessWidget {
     super.key,
     this.height = 48,
     this.userVariant = false,
+    this.compact = false,
   });
 
   final double height;
   final bool userVariant;
 
+  /// Trims extra padding baked into the SVG — use in the nav bar.
+  final bool compact;
+
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset(
-      userVariant ? 'assets/user_logo.svg' : 'assets/logo.svg',
+    final asset = userVariant ? 'assets/user_logo.svg' : 'assets/logo.svg';
+    final svg = SvgPicture.asset(
+      asset,
       height: height,
       fit: BoxFit.contain,
+    );
+
+    if (!compact) return svg;
+
+    // logo.svg uses a square viewBox with generous margins around the mark.
+    return SizedBox(
+      height: height,
+      width: height * 2.35,
+      child: ClipRect(
+        child: Align(
+          alignment: Alignment.center,
+          widthFactor: 0.78,
+          heightFactor: 0.78,
+          child: Transform.scale(
+            scale: 1.35,
+            child: svg,
+          ),
+        ),
+      ),
     );
   }
 }

@@ -4,12 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../../config/app_config.dart';
 import '../../core/api/api_client.dart';
 import '../../models/order.dart';
 import '../../providers/app_providers.dart';
+import '../../utils/product_image_url.dart';
 import '../../widgets/app_logo.dart';
 import '../../widgets/app_shell.dart';
+import '../../widgets/guest_auth_views.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
   const OrderHistoryScreen({super.key});
@@ -31,11 +32,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   Future<void> _load() async {
     final auth = context.read<AuthProvider>();
     if (!auth.authenticated) {
-      final loggedIn = await context.push<bool>('/login');
-      if (loggedIn != true || !mounted) {
-        context.go('/');
-        return;
-      }
+      if (mounted) setState(() => _loading = false);
+      return;
     }
     setState(() => _loading = true);
     try {
@@ -54,6 +52,17 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+
+    if (!auth.authenticated) {
+      return GuestSignInView(
+        title: 'Sign in to view orders',
+        subtitle: 'Your order history will appear here after you sign in.',
+        icon: Icons.receipt_long_outlined,
+        onSignedIn: _load,
+      );
+    }
+
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -126,7 +135,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                               const Divider(height: 24),
                               ...order.orderItems.map((item) {
                                 final imageUrl = item.product.images.isNotEmpty
-                                    ? '${AppConfig.imageBaseUrl}/${item.product.images.first.path}'
+                                    ? productImageUrl(
+                                        item.product.images.first.path)
                                     : null;
                                 return Padding(
                                   padding: const EdgeInsets.only(bottom: 16),

@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../config/app_config.dart';
 import '../../models/cart.dart';
 import '../../models/order.dart';
@@ -121,6 +120,31 @@ class ApiClient {
     return Product.fromJson(response.data!);
   }
 
+  Future<Product> createProduct({
+    required String name,
+    required String description,
+    required num price,
+    required int stock,
+    List<MultipartFile> images = const [],
+  }) async {
+    final formData = FormData.fromMap({
+      'name': name,
+      'description': description,
+      'price': price.toString(),
+      'stock': stock.toString(),
+      if (images.isNotEmpty) 'images': images,
+    });
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/products/store',
+      data: formData,
+    );
+    return Product.fromJson(response.data!);
+  }
+
+  Future<void> deleteProduct(String id) async {
+    await _dio.delete<void>('/products/delete/$id');
+  }
+
   Future<int> getCartCount() async {
     final response = await _dio.get<Map<String, dynamic>>('/carts/count');
     return response.data?['count'] as int? ?? 0;
@@ -191,6 +215,19 @@ class ApiClient {
     await _dio.post<void>(
       '/users/profiles/update',
       data: profile.toJson(),
+    );
+  }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await _dio.post<void>(
+      '/users/change-password',
+      data: {
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+      },
     );
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/api/api_client.dart';
 
@@ -73,5 +74,41 @@ class CartProvider extends ChangeNotifier {
   void resetCount() {
     _count = 0;
     notifyListeners();
+  }
+}
+
+class SavedProvider extends ChangeNotifier {
+  static const _storageKey = 'saved_product_ids';
+
+  final Set<String> _ids = {};
+  bool _ready = false;
+
+  bool get ready => _ready;
+  Set<String> get ids => Set.unmodifiable(_ids);
+
+  SavedProvider() {
+    _load();
+  }
+
+  bool isSaved(String productId) => _ids.contains(productId);
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    _ids
+      ..clear()
+      ..addAll(prefs.getStringList(_storageKey) ?? const []);
+    _ready = true;
+    notifyListeners();
+  }
+
+  Future<void> toggle(String productId) async {
+    if (_ids.contains(productId)) {
+      _ids.remove(productId);
+    } else {
+      _ids.add(productId);
+    }
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_storageKey, _ids.toList());
   }
 }

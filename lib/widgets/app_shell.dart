@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'app_footer.dart';
+import 'app_bottom_nav.dart';
 import 'app_header.dart';
 
 /// Main layout — mirrors React `Layout` (Header + scrollable page body).
@@ -10,8 +12,14 @@ class AppLayout extends StatelessWidget {
 
   final Widget child;
 
+  static const _wideBreakpoint = 1024.0;
+
   @override
   Widget build(BuildContext context) {
+    final wide = MediaQuery.sizeOf(context).width >= _wideBreakpoint;
+    final location = GoRouterState.of(context).matchedLocation;
+    final showTabs = !wide && AppBottomNav.isTabRoute(location);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
@@ -21,6 +29,7 @@ class AppLayout extends StatelessWidget {
           Expanded(child: child),
         ],
       ),
+      bottomNavigationBar: showTabs ? const AppBottomNav() : null,
     );
   }
 }

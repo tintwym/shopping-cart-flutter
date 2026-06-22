@@ -1,16 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../../config/app_config.dart';
 import '../../core/api/api_client.dart';
 import '../../models/product.dart';
 import '../../models/review.dart';
 import '../../providers/app_providers.dart';
+import '../../utils/product_image_url.dart';
 import '../../widgets/app_logo.dart';
 import '../../widgets/app_shell.dart';
+import '../../widgets/auth_dialog.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({super.key, required this.productId});
@@ -54,7 +54,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Future<void> _addToCart() async {
     final auth = context.read<AuthProvider>();
     if (!auth.authenticated) {
-      final loggedIn = await context.push<bool>('/login');
+      final loggedIn = await showAuthDialog(context);
       if (loggedIn != true || !mounted) return;
     }
     try {
@@ -94,21 +94,30 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      AspectRatio(
-                        aspectRatio: 1,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: _product!.images.isNotEmpty
-                              ? CachedNetworkImage(
-                                  imageUrl:
-                                      '${AppConfig.imageBaseUrl}/${_product!.images.first.path}',
-                                  fit: BoxFit.contain,
-                                )
-                              : const ColoredBox(
-                                  color: Color(0xFFF3F4F6),
-                                  child: AppLogoPlaceholder(size: 72),
-                                ),
-                        ),
+                      Stack(
+                        children: [
+                          AspectRatio(
+                            aspectRatio: 1,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: _product!.images.isNotEmpty
+                                  ? CachedNetworkImage(
+                                      imageUrl: productImageUrl(
+                                          _product!.images.first.path)!,
+                                      fit: BoxFit.contain,
+                                    )
+                                  : const ColoredBox(
+                                      color: Color(0xFFF3F4F6),
+                                      child: AppLogoPlaceholder(size: 72),
+                                    ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 12,
+                            right: 12,
+                            child: _SaveButton(productId: _product!.id),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -222,6 +231,29 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       const LayoutScrollFooter(),
                     ],
                   ),
+    );
+  }
+}
+
+class _SaveButton extends StatelessWidget {
+  const _SaveButton({required this.productId});
+
+  final String productId;
+
+  @override
+  Widget build(BuildContext context) {
+    final saved = context.watch<SavedProvider>();
+    final isSaved = saved.isSaved(productId);
+    return Material(
+      color: Colors.white.withValues(alpha: 0.92),
+      shape: const CircleBorder(),
+      child: IconButton(
+        onPressed: () => saved.toggle(productId),
+        icon: Icon(
+          isSaved ? Icons.bookmark : Icons.bookmark_border,
+          color: isSaved ? const Color(0xFF0D9488) : const Color(0xFF6B7280),
+        ),
+      ),
     );
   }
 }

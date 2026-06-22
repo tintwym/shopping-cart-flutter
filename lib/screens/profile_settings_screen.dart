@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api/api_client.dart';
 import '../../models/user.dart';
-import '../../providers/app_providers.dart';
 import '../../widgets/app_shell.dart';
+import '../../widgets/profile_menu.dart';
 
-class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+class ProfileSettingsScreen extends StatefulWidget {
+  const ProfileSettingsScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  State<ProfileSettingsScreen> createState() => _ProfileSettingsScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   final _address1 = TextEditingController();
   final _address2 = TextEditingController();
   final _unit = TextEditingController();
@@ -24,7 +23,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _country = TextEditingController();
   final _zipCode = TextEditingController();
 
-  User? _user;
   bool _loading = true;
   bool _saving = false;
 
@@ -48,21 +46,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _load() async {
-    final auth = context.read<AuthProvider>();
-    if (!auth.authenticated) {
-      final loggedIn = await context.push<bool>('/login');
-      if (loggedIn != true || !mounted) {
-        context.go('/');
-        return;
-      }
-    }
     setState(() => _loading = true);
     try {
-      final api = context.read<ApiClient>();
-      final user = await api.getCurrentUser();
-      final profile = await api.getProfile();
+      final profile = await context.read<ApiClient>().getProfile();
       if (mounted) {
-        _user = user;
         _address1.text = profile.address1 ?? '';
         _address2.text = profile.address2 ?? '';
         _unit.text = profile.unit ?? '';
@@ -102,46 +89,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _logout() async {
-    await context.read<AuthProvider>().logout();
-    context.read<CartProvider>().resetCount();
-    if (mounted) {
-      context.go('/');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+    return SettingsPageShell(
+      title: 'Profile settings',
+      child: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${_user?.firstName ?? ''} ${_user?.lastName ?? ''}',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text('@${_user?.username ?? ''}'),
-                          Text(_user?.email ?? ''),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                   const Text(
                     'Shipping address',
                     style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
@@ -203,16 +161,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Save address'),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton(
-                    onPressed: _logout,
-                    child: const Text('Logout'),
+                        : const Text('Save changes'),
                   ),
                   const LayoutScrollFooter(),
                 ],
               ),
+            ),
     );
   }
 }

@@ -5,6 +5,7 @@ class User {
     required this.lastName,
     required this.username,
     required this.email,
+    this.roleName,
   });
 
   final String id;
@@ -12,14 +13,23 @@ class User {
   final String lastName;
   final String username;
   final String email;
+  final String? roleName;
+
+  bool get isAdmin => roleName?.toLowerCase() == 'admin';
 
   factory User.fromJson(Map<String, dynamic> json) {
+    final role = json['role'];
+    String? roleName;
+    if (role is Map<String, dynamic>) {
+      roleName = role['name'] as String?;
+    }
     return User(
       id: json['id'] as String? ?? '',
       firstName: json['firstName'] as String? ?? '',
       lastName: json['lastName'] as String? ?? '',
       username: json['username'] as String? ?? '',
       email: json['email'] as String? ?? '',
+      roleName: roleName,
     );
   }
 }
