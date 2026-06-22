@@ -27,6 +27,15 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
   }
 
   Future<void> _confirm() async {
+    if (widget.sessionId.isEmpty) {
+      if (mounted) {
+        setState(() {
+          _error = 'Missing payment session. Return from Stripe checkout to confirm your order.';
+          _loading = false;
+        });
+      }
+      return;
+    }
     try {
       await context.read<ApiClient>().confirmCheckout(widget.sessionId);
       if (!mounted) return;

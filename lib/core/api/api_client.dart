@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../config/app_config.dart';
 import '../../models/cart.dart';
@@ -34,12 +35,20 @@ class ApiClient {
           }
           handler.next(response);
         },
+        onError: (error, handler) async {
+          if (error.response?.statusCode == 401) {
+            await setToken(null);
+            onUnauthorized?.call();
+          }
+          handler.next(error);
+        },
       ),
     );
   }
 
   late final Dio _dio;
   String? _token;
+  VoidCallback? onUnauthorized;
 
   String? get token => _token;
   bool get isAuthenticated => _token != null && _token!.isNotEmpty;

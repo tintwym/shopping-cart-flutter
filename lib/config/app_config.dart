@@ -12,13 +12,9 @@ class AppConfig {
   static String get apiBaseUrl => resolveApiBaseUrl();
   static String get imageBaseUrl => resolveImageBaseUrl();
 
-  /// False on deployed web when no valid API_BASE_URL was provided at build time.
+  /// False on deployed web when no valid API URL is available.
   static bool get isApiConfigured {
-    if (!kIsWeb) return isValidApiBaseUrl(apiBaseUrl);
-    final host = Uri.base.host;
-    final isLocal = host == 'localhost' || host == '127.0.0.1';
-    if (isLocal) return true;
-    return _hasValidProductionOverride();
+    return isValidApiBaseUrl(apiBaseUrl);
   }
 
   static String? get configurationError => apiConfigurationError();
@@ -43,6 +39,10 @@ bool isValidApiBaseUrl(String url) {
   for (final marker in _placeholderMarkers) {
     if (trimmed.contains(marker)) return false;
   }
+  // Relative same-origin proxy (/api on Vercel) is valid on web.
+  if (trimmed.startsWith('/')) {
+    return trimmed == '/api' || trimmed.endsWith('/api');
+  }
   if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
     return false;
   }
@@ -51,30 +51,18 @@ bool isValidApiBaseUrl(String url) {
 }
 
 String? apiConfigurationError() {
-  if (_hasValidProductionOverride()) return null;
+  if (isValidApiBaseUrl(resolveApiBaseUrl())) return null;
   if (!kIsWeb) return null;
   final host = Uri.base.host;
   if (host == 'localhost' || host == '127.0.0.1') return null;
 
   if (_apiBaseUrlOverride.contains('IMAGE_BASE_URL')) {
-    return 'API_BASE_URL is set to IMAGE_BASE_URL on Vercel. '
-        'Use your Render API URL instead, e.g.\n'
-        'https://shopping-cart-backend-slwz.onrender.com/api';
+    return 'API_BASE_URL on Vercel was set to IMAGE_BASE_URL by mistake. '
+        'Remove or fix it, or redeploy — the app will use /api on your domain instead.';
   }
-  return 'API_BASE_URL is missing or invalid. On Vercel set:\n'
-      'API_BASE_URL=https://shopping-cart-backend-slwz.onrender.com/api\n'
-      'then redeploy.';
-}
-
-bool _hasValidProductionOverride() {
-  if (kIsWeb) {
-    final meta = readWebMetaApiBaseUrl();
-    if (meta != null && isValidApiBaseUrl(meta)) return true;
-  }
-  if (_apiBaseUrlOverride.isNotEmpty && isValidApiBaseUrl(_apiBaseUrlOverride)) {
-    return true;
-  }
-  return false;
+  return 'API is not configured. Set API_BASE_URL on Vercel to:\n'
+      'https://shopping-cart-backend-slwz.onrender.com/api\n'
+      'or ensure vercel.json proxies /api to your Render backend.';
 }
 
 String resolveApiBaseUrl() {
@@ -88,6 +76,12 @@ String resolveApiBaseUrl() {
   }
 
   if (kIsWeb) {
+    final host = Uri.base.host;
+    final isLocal = host == 'localhost' || host == '127.0.0.1';
+    if (!isLocal) {
+      // Same-origin /api — proxied to Render via vercel.json (see DEPLOY.md).
+      return '${Uri.base.origin}/api';
+    }
     return 'http://localhost:8080/api';
   }
   return ioApiBaseUrl();

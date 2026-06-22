@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api/api_client.dart';
@@ -20,11 +21,12 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
   List<Product> _products = [];
   bool _loading = true;
   String? _error;
+  bool _isAdmin = false;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
 
   Future<void> _load() async {
@@ -33,6 +35,17 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
       _error = null;
     });
     try {
+      final user = await context.read<ApiClient>().getCurrentUser();
+      if (!user.isAdmin) {
+        if (mounted) {
+          setState(() {
+            _isAdmin = false;
+            _error = 'Admin access required.';
+          });
+        }
+        return;
+      }
+      _isAdmin = true;
       final products = await context.read<ApiClient>().getProducts();
       if (mounted) setState(() => _products = products);
     } catch (e) {
@@ -99,10 +112,22 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                 if (_error != null)
                   Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Text(_error!, style: const TextStyle(color: Colors.red)),
+                    child: Column(
+                      children: [
+                        Text(_error!, style: const TextStyle(color: Colors.red)),
+                        if (!_isAdmin) ...[
+                          const SizedBox(height: 12),
+                          OutlinedButton(
+                            onPressed: () => context.go('/me'),
+                            child: const Text('Back to account'),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 Expanded(
-                  child: RefreshIndicator(
+                  child: _isAdmin
+                      ? RefreshIndicator(
                     onRefresh: _load,
                     child: _products.isEmpty
                         ? ListView(
@@ -131,8 +156,10 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                               );
                             },
                           ),
-                  ),
+                        )
+                      : const SizedBox.shrink(),
                 ),
+                if (_isAdmin)
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: FilledButton.icon(

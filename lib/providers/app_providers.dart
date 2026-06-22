@@ -17,7 +17,15 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> _init() async {
     await _api.loadToken();
-    _authenticated = _api.isAuthenticated;
+    if (_api.isAuthenticated) {
+      try {
+        await _api.getCurrentUser();
+        _authenticated = true;
+      } catch (_) {
+        await _api.logout();
+        _authenticated = false;
+      }
+    }
     _loading = false;
     notifyListeners();
   }
@@ -58,6 +66,7 @@ class CartProvider extends ChangeNotifier {
 
   final ApiClient _api;
   int _count = 0;
+  int _refreshGeneration = 0;
 
   int get count => _count;
 
@@ -67,12 +76,21 @@ class CartProvider extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    _count = await _api.getCartCount();
-    notifyListeners();
+    final generation = ++_refreshGeneration;
+    try {
+      final next = await _api.getCartCount();
+      if (generation == _refreshGeneration) {
+        _count = next;
+        notifyListeners();
+      }
+    } catch (_) {
+      // Keep last known count on transient failures.
+    }
   }
 
   void resetCount() {
     _count = 0;
+    _refreshGeneration++;
     notifyListeners();
   }
 }
@@ -88,6 +106,12 @@ class SavedProvider extends ChangeNotifier {
 
   SavedProvider() {
     _load();
+  }
+
+  Future<void> waitUntilReady() async {
+    while (!_ready) {
+      await Future<void>.delayed(const Duration(milliseconds: 25));
+    }
   }
 
   bool isSaved(String productId) => _ids.contains(productId);

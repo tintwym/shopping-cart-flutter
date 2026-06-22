@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'core/api/api_client.dart';
-import 'config/app_config.dart';
 import 'core/theme/app_theme.dart';
 import 'providers/app_providers.dart';
 import 'screens/cart_screen.dart';
@@ -23,7 +22,6 @@ import 'screens/review_screen.dart';
 import 'screens/saved_screen.dart';
 import 'screens/two_factor_screen.dart';
 import 'widgets/app_shell.dart';
-import 'widgets/config_error_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,6 +51,11 @@ class _ShoppingCartAppState extends State<ShoppingCartApp> {
     _authProvider = AuthProvider(_apiClient);
     _cartProvider = CartProvider(_apiClient);
     _savedProvider = SavedProvider();
+    _apiClient.onUnauthorized = () {
+      _authProvider.logout();
+      _cartProvider.resetCount();
+      _cartCountLoaded = false;
+    };
     _router = _buildRouter();
     _authProvider.addListener(_onAuthChanged);
     if (!kIsWeb) {
@@ -61,6 +64,10 @@ class _ShoppingCartAppState extends State<ShoppingCartApp> {
   }
 
   void _onAuthChanged() {
+    if (!_authProvider.loading && !_authProvider.authenticated) {
+      _cartCountLoaded = false;
+      _cartProvider.resetCount();
+    }
     if (!_authProvider.loading &&
         _authProvider.authenticated &&
         !_cartCountLoaded) {
@@ -83,6 +90,19 @@ class _ShoppingCartAppState extends State<ShoppingCartApp> {
       refreshListenable: _authProvider,
       redirect: (context, state) {
         if (_authProvider.loading) return null;
+        final path = state.matchedLocation;
+        const authRequired = {
+          '/cart',
+          '/orders',
+          '/me/settings',
+          '/me/change-password',
+          '/me/two-factor',
+          '/me/payment-methods',
+          '/me/admin/products',
+        };
+        if (authRequired.contains(path) && !_authProvider.authenticated) {
+          return '/me';
+        }
         return null;
       },
       errorBuilder: (_, state) => NotFoundScreen(key: ValueKey(state.uri)),
@@ -166,18 +186,9 @@ class _ShoppingCartAppState extends State<ShoppingCartApp> {
 
   @override
   Widget build(BuildContext context) {
-    if (!AppConfig.isApiConfigured && kIsWeb) {
-      final host = Uri.base.host;
-      final isLocal = host == 'localhost' || host == '127.0.0.1';
-      if (!isLocal) {
-        return const MaterialApp(
-          home: ConfigErrorScreen(),
-        );
-      }
-    }
-
     if (_authProvider.loading) {
       return MaterialApp(
+        title: 'Pixel Tech',
         theme: AppTheme.light,
         home: const Scaffold(
           body: Center(child: CircularProgressIndicator()),

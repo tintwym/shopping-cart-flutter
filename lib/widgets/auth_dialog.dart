@@ -1,6 +1,8 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../config/app_config.dart';
 import '../core/api/api_errors.dart';
 import '../core/theme/app_theme.dart';
 import '../providers/app_providers.dart';
@@ -91,6 +93,17 @@ class _AuthDialogState extends State<AuthDialog> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final configError = AppConfig.configurationError;
+    if (configError != null) {
+      setState(() => _error = configError);
+      return;
+    }
+    if (!AppConfig.isApiConfigured) {
+      setState(() => _error = 'API is not configured for this deployment.');
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
@@ -115,9 +128,15 @@ class _AuthDialogState extends State<AuthDialog> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = _mode == AuthDialogMode.login
-              ? 'Username or password is incorrect.'
-              : apiErrorMessage(e);
+          if (e is DioException &&
+              e.response?.statusCode == 401 &&
+              _mode == AuthDialogMode.login) {
+            _error = 'Username or password is incorrect.';
+          } else if (_mode == AuthDialogMode.register) {
+            _error = apiErrorMessage(e);
+          } else {
+            _error = apiErrorMessage(e);
+          }
         });
       }
     } finally {

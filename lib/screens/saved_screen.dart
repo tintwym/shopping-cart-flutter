@@ -3,9 +3,11 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api/api_client.dart';
+import '../../core/api/api_errors.dart';
 import '../../models/product.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/app_shell.dart';
+import '../../widgets/auth_dialog.dart';
 import '../../widgets/product_card.dart';
 
 class SavedScreen extends StatefulWidget {
@@ -18,21 +20,24 @@ class SavedScreen extends StatefulWidget {
 class _SavedScreenState extends State<SavedScreen> {
   List<Product> _products = [];
   bool _loading = true;
+  String? _error;
+  Set<String> _lastIds = {};
 
   @override
   void initState() {
     super.initState();
-    _load();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final saved = context.read<SavedProvider>();
-      if (!saved.ready) {
-        await Future<void>.delayed(const Duration(milliseconds: 100));
-      }
-      final ids = context.read<SavedProvider>().ids;
+      await saved.waitUntilReady();
+      final ids = saved.ids;
       if (ids.isEmpty) {
         if (mounted) setState(() => _products = []);
         return;
@@ -41,19 +46,64 @@ class _SavedScreenState extends State<SavedScreen> {
       if (mounted) {
         setState(() {
           _products = all.where((p) => ids.contains(p.id)).toList();
+          _lastIds = ids;
         });
       }
+    } catch (e) {
+      if (mounted) setState(() => _error = apiErrorMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
+  Future<void> _addToCart(Product product) async {
+    final auth = context.read<AuthProvider>();
+    if (!auth.authenticated) {
+      final loggedIn = await showAuthDialog(context);
+      if (loggedIn != true || !mounted) return;
+    }
+    try {
+      await context.read<ApiClient>().addToCart(product.id);
+      await context.read<CartProvider>().refreshCount();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Product added to cart successfully!')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(apiErrorMessage(e))),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    context.watch<SavedProvider>();
+    final saved = context.watch<SavedProvider>();
+    if (saved.ready && saved.ids != _lastIds && !_loading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+    }
 
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(_error!, textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              OutlinedButton(onPressed: _load, child: const Text('Retry')),
+            ],
+          ),
+        ),
+      );
     }
 
     if (_products.isEmpty) {
@@ -117,7 +167,7 @@ class _SavedScreenState extends State<SavedScreen> {
           return ProductCard(
             product: product,
             onTap: () => context.push('/products/${product.id}'),
-            onAddToCart: () {},
+            onAddToCart: () => _addToCart(product),
             showSaveButton: true,
           );
         },
